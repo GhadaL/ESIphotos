@@ -1,0 +1,26 @@
+package fr.esisar.model;
+
+public class Adresse {
+	private int idAdresse, codePostal;
+	private String rue, Ville;
+	
+	public void Adresse(int idAdresse, String rue, int codePostal, String Ville) {
+		this.idAdresse = idAdresse;
+		this.rue = rue;
+		this.codePostal = codePostal;
+		this.Ville = Ville;
+	}
+
+	public int getIdAdresse() {
+		return idAdresse;
+	}
+	public String getRue() {
+		return rue;
+	}
+	public int getCodePostal() {
+		return codePostal;
+	}
+	public String getVille() {
+		return Ville;
+	}
+}

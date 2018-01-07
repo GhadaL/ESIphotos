@@ -1,0 +1,132 @@
+package fr.esisar.controller;
+import fr.esisar.model.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.management.Query;
+
+import fr.esisar.controller.*;
+public class FichierImageDAO extends FichierImage {
+	
+	public FichierImageDAO(String cheminAcces, String appareilPhoto, String objectif, double distanceFocal,
+			String sensibiliteISO, String ouverture, double vitesseOburation, String client) {
+		
+		super(cheminAcces,appareilPhoto,objectif,distanceFocal,sensibiliteISO,ouverture,vitesseOburation,client);
+	}
+	
+	public FichierImageDAO()  {
+		super();
+	}
+
+	public static boolean InsererFichierImage(Connection Connection, String cheminAcces, String appareilPhoto,
+			String objectif, String distanceFocal, String sensibiliteISO, String ouverture, String vitesseOburation,
+			String adressMail) {
+		Statement statement;
+		ResultSet result = null;
+		try {
+			statement = Connection.createStatement();
+			String quer1 = "INSERT INTO FichierImage (cheminAcces, appareilPhoto, objectif, distanceFocale, sensibiliteISO, ouverture, vitesseObturation,adresseMail) ";
+			String quer2 = "VALUES ('" + cheminAcces + "', '" + appareilPhoto + "', '" + objectif + "', '" + distanceFocal + "', '"
+					+ sensibiliteISO + "', '" + ouverture + "', '" + vitesseOburation +  "', '" + adressMail+"')";
+			statement.executeUpdate(quer1 + quer2);
+			System.out.println("fichier Image est bien ajoute!");
+			return true;
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Erreur : Fichier n'a pas pu etre insere");
+			return false;
+		}
+		
+		
+		
+	}
+	public static boolean SupprimerFichierImage(Connection connect, String url) throws ClassNotFoundException {
+		Statement statement;
+		try {
+			statement = connect.createStatement();
+			
+			// delete from contient
+			//statement.executeUpdate("DELETE FROM CONTIENT WHERE cheminAcces = '"+url+"'");
+			String sql = "DELETE FROM FichierImage WHERE cheminAcces = '" + url + "'";
+			
+			int r=statement.executeUpdate(sql);
+			System.out.println("Le fichierImage "+url+" est supprime.");
+			return true;
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+	}
+	
+	public FichierImage findByURL(Connection connect,StrincheminAccesg url) throws SQLException {
+		Statement statement;
+		ResultSet result = null;
+	
+	
+			statement = connect.createStatement();
+			String sql = "SELECT * FROM FichierImage WHERE cheminAcces = \'" + url + "\' ";
+			;
+			result = statement.executeQuery(sql);
+			FichierImage image=new FichierImage();
+			while (result.next()) {
+				image.setAppareilPhoto(result.getString("appareilPhoto"));
+				image.setObjectif(result.getString("objectif"));
+				image.setDistanceFocal(Double.parseDouble(result.getString("distanceFocal")));
+				image.setSensibiliteISO(result.getString("sensibiliteISO"));
+				
+				image.setOuverture(result.getString("ouverture"));
+				image.setVitesseOburation(Double.parseDouble(result.getString("VitesseOburation")));  
+			}
+			return image;
+	}
+	public void afficherFichierImage(Connection connect,String idClient) throws SQLException {
+		Statement statement;
+		FichierImage image;
+		ResultSet result = null;
+			statement = connect.createStatement();
+			String sql = "SELECT * FROM FichierImage WHERE adressMail = '"+idClient+"'";
+			result = statement.executeQuery(sql);
+			 image=new FichierImage(idClient);
+			while (result.next()) {
+				image.setCheminAcces(result.getString("cheminAcces"));
+				image.setAppareilPhoto(result.getString("appareilPhoto"));
+				image.setObjectif(result.getString("objectif"));
+				image.setDistanceFocal(Double.parseDouble(result.getString("distanceFocal")));
+				image.setSensibiliteISO(result.getString("sensibiliteISO"));
+				image.setOuverture(result.getString("ouverture"));
+				image.setVitesseOburation(Double.parseDouble(result.getString("VitesseOburation")));  
+				image.toString();
+			}
+		
+	}
+
+	public static boolean VerifierPresenceImage(Connection connect, String chemin) {
+		Statement statement;
+		boolean res = false;
+		ResultSet result = null;
+		try {
+			statement = connect.createStatement();
+			String sentence = "SELECT cheminAcces FROM FichierImage";
+			result = statement.executeQuery(sentence);
+			while (result.next()) {
+				if(chemin.equals(result.getString("cheminAcces"))){
+					res = true;
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	
+	
+}

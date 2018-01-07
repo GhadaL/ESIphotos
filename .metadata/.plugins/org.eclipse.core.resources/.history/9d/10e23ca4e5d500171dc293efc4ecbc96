@@ -1,0 +1,190 @@
+package fr.esisar.controller;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+
+import fr.esisar.model.Client;
+
+public class ClientDAO extends Client{
+	private Connection connexion; 
+
+	public ClientDAO(String mail,String password) throws ClassNotFoundException, SQLException {
+		super(mail,password);
+		connexion=creerConnection();
+	}
+	
+	public ClientDAO(String mail,String nom,String prenom, String mdp) throws ClassNotFoundException, SQLException {
+		super(mail, nom, prenom, mdp);
+		connexion=creerConnection();
+	}
+	
+
+	public boolean EnregistrerClient(File fichier,String ruel,String codePostall,String villel,String ruef,String codePostalf,String villef)
+			throws ClassNotFoundException, SQLException, IOException {
+		// si le client ne existe pas dans la basse de donnees, cette methode
+		// cree une instance dans la basse de donnees par ce client.
+		System.out.println("le client" + super.getPrenom() + "veux de connecter");
+		boolean res = true;
+		int idaddliv,idaddfac;
+		Statement statement;
+		ResultSet result = null;
+		statement = connexion.createStatement();
+		String sentence = "SELECT adresseMail FROM Client";
+		result = statement.executeQuery(sentence);
+		while (result.next()) {
+			if (super.getAdressMail().equals(result.getString("adresseMail"))) {
+				res = false;
+			}
+		}
+		if (res == true) {
+			result = statement.executeQuery("SELECT MAX(idAdresse) FROM Adresse");
+			result.next();
+			if(result.getString(1)==null)
+			{
+				idaddliv = 0;
+				idaddfac=1;
+			}
+			else{
+				idaddliv = Integer.parseInt(result.getString(1)) + 1;
+				idaddfac= Integer.parseInt(result.getString(1)) + 2;
+			}
+		
+			AdresseDAO adresseliv=new AdresseDAO(idaddliv, ruel, codePostall, villel);
+			AdresseDAO adressefac=new AdresseDAO(idaddfac, ruef, codePostalf, villef);
+			adresseliv.addAddresse(connexion);
+			adressefac.addAddresse(connexion);
+			String quer1 = "INSERT INTO Client (adresseMail, nom, prenom, password,idadresseL,idadresseF) ";
+			String quer2 = "VALUES ('" + super.getAdressMail() + "', '" + super.getNom() + "', '" + super.getPrenom() + "', '" +
+			super.getPassword() + "', '"+idaddliv+"', '"+idaddfac+"')";
+			result = statement.executeQuery(quer1 + quer2);
+		}
+		// Ecriture fichier log
+		System.out.println(fichier);
+		BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fichier, true));
+		bufferedWriter.write("Enregistrer Nom du client : " + super.getNom() + " Prenom: " + super.getPrenom() + " Mail: " + super.getAdressMail()+"Mot de passe:"+super.getPassword()+  "\n");
+		bufferedWriter.newLine();
+		bufferedWriter.write("Effectue : " + res);
+		bufferedWriter.close();		
+		return res;
+	}
+
+	public boolean ConnexionClient(String mail, String mdp) throws ClassNotFoundException, SQLException {
+		// si le client exist, cette methode returns true
+		System.out.println("le client " + super.getAdressMail() + " veux se connecter");
+		boolean res = false;
+		Statement statement;
+		ResultSet result = null;
+		statement = connexion.createStatement();
+		String sentence = "SELECT adresseMail FROM Client";
+		System.out.println("le client " + super.getAdressMail() + " veux se connecter");
+		result = statement.executeQuery(sentence);
+		ResultSet resu;
+		while (result.next()) {
+			System.out.println(result.getString("adresseMail"));
+			if (mail.equals(result.getString("adresseMail"))) {
+				sentence = "SELECT password FROM Client";
+				resu = statement.executeQuery(sentence);
+				while (resu.next()) {
+					if (mdp.equals(resu.getString("password"))) {
+						res = true;
+					}
+				}
+			}
+		}
+		return res;
+	}
+
+	private static Connection creerConnection() throws ClassNotFoundException, SQLException {
+		String server = "tp-oracle.esisar.grenoble-inp.fr";
+		String driver = "oracle.jdbc.driver.OracleDriver";
+		String url = "jdbc:oracle:thin:@//" + server + "/xe";
+		String login = "louremig";
+		String mdp = "louremig";
+
+		try {
+			Class.forName(driver);
+
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Connection connection = DriverManager.getConnection(url, login, mdp);
+		// System.out.println(connection);
+		return connection;
+
+	}
+
+
+
+	public int CreationAlbum(String titre, String sous_titre) throws ClassNotFoundException, SQLException {
+		AlbumDAO album = new AlbumDAO(titre, sous_titre);
+		return album.addAlbum(connexion, super.getAdressMail());
+	}
+	
+	public boolean SupprimerAlbum(String titre, String sous_titre) throws ClassNotFoundException, SQLException {
+		return AlbumDAO.supprimerAlbum(connexion, titre, sous_titre, super.getAdressMail());
+	}
+	//ici avec la méme connection ! pas besion de reconnecter à chaque fois ! on va faire un attribut connection
+	public boolean AfficherListeAlbum() throws ClassNotFoundException, SQLException{
+		return AlbumDAO.AfficherListeAlbum(connexion, super.getAdressMail());
+	}
+	
+	//AlbumDAO : creer la methode : public String getidAlbum(String titreAlbum, String soustitreAlbum)
+	// qui sera utilisee pour creerLigneCommande
+	
+	public boolean InsererFichierImage(String cheminAcces, String appareilPhoto, String objectif, String distanceFocal, String sensibiliteISO, String ouverture, String vitesseOburation) throws ClassNotFoundException, SQLException{
+		return FichierImageDAO.InsererFichierImage(connexion, cheminAcces, appareilPhoto, objectif, distanceFocal, sensibiliteISO, ouverture, vitesseOburation,super.getAdressMail());
+	}
+	
+	public boolean SupprimerFichierImage(String cheminAcces) throws ClassNotFoundException, SQLException{
+		return FichierImageDAO.SupprimerFichierImage(connexion, cheminAcces);
+	}
+	
+	public boolean AjouterFichierImagetoAlbum(String cheminAcces, String idAlbum, String titre, String commentaire) throws ClassNotFoundException, SQLException{
+		
+		return ContientDAO.AjouterFichierImagetoAlbum(connexion, cheminAcces, idAlbum, titre, commentaire, super.getAdressMail());
+	}
+	
+	public boolean RetirerFichierImagefromAlbum(String cheminAcces, String idAlbum) throws ClassNotFoundException, SQLException{
+		return ContientDAO.RetirerFichierImagefromAlbum(connexion, cheminAcces, idAlbum, super.getAdressMail());
+	}
+	
+	public int CreerCommande() throws ClassNotFoundException, SQLException{
+		CommandeDAO comm = new CommandeDAO();
+		return comm.addCommande(connexion, super.getAdressMail());
+		//Retourne l'idCommande de la commande creee
+		//commande temporaire de prix 0. A supprimer + tard si le client ne la valide pas.
+		//Dans le main, demander au client de memoriser son idCommande
+	}
+	
+	public int ChoixFormat(String idFormat) throws ClassNotFoundException, SQLException{
+		//verifier dans le main que le format idFormat est entre A1 et A6
+		//Attention : idFormat correspond a A1, A2, A3... A6 (un format n'est pas propre a une commande)
+		return FormatDAO.verifierPresenceFormat(connexion, idFormat, super.getAdressMail());
+		//retourne le prix du format
+	}
+	
+	public boolean CreerLigneCommande(File fichier, String quantite, int idCommande, String titreAlbum, String soustitreAlbum, String idFormat) throws ClassNotFoundException, SQLException, IOException{
+		int idAlbum = AlbumDAO.getidAlbum(titreAlbum, soustitreAlbum);
+		return LigneCommandeDAO.addLigneCommande(fichier, connexion, quantite, idCommande, idFormat,  idAlbum);
+	}
+	
+	public int ValiderCommande(File file, int idCommande) throws ClassNotFoundException, SQLException, IOException{
+		return CommandeDAO.ValiderCommande(file, connexion, idCommande, super.getAdressMail());
+		//Pour valider la commande, calculer prixTotal a partir des prixUnitaires
+		//Retourner le prixTotal
+		//Dans le main, demander au client de memoriser son idCommande
+	}
+
+	public void AfficherListeFormat() throws ClassNotFoundException, SQLException {
+		FormatDAO.AfficherListFormat(connexion);
+	}
+}

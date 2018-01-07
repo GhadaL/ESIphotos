@@ -1,0 +1,116 @@
+package fr.esisar.controller;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+
+import fr.esisar.model.Client;
+
+public class ClientDAO extends Client{
+
+
+	public ClientDAO(String mail,String password) {
+		super(mail,password);
+	}
+	
+	public ClientDAO(String mail,String nom,String prenom, String mdp) {
+		super(mail, nom, prenom, mdp);
+	}
+	
+
+	public boolean EnregistrerClient(File fichier,String nom, String prenom, String mail, String mdp)
+			throws ClassNotFoundException, SQLException, IOException {
+		// si le client ne existe pas dans la basse de donnees, cette methode
+		// cree une instance dans la basse de donnees par ce client.
+		System.out.println("le client" + prenom + "veux de connecter");
+		boolean res = true;
+		Statement statement;
+		ResultSet result = null;
+		
+		statement = creerConnection().createStatement();
+		String sentence = "SELECT adresseMail FROM Client";
+		result = statement.executeQuery(sentence);
+		while (result.next()) {
+			if (mail.equals(result.getString("adresseMail"))) {
+				res = false;
+			}
+		}
+		if (res == true) {
+			String quer1 = "INSERT INTO Client (adresseMail, nom, prenom, password) ";
+			String quer2 = "VALUES ('" + mail + "', '" + nom + "', '" + prenom + "', '" + mdp + "')";
+			result = statement.executeQuery(quer1 + quer2);
+		}
+		// Ecriture fichier log
+		System.out.println(fichier);
+		BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fichier, true));
+		bufferedWriter.write("Enregistrer Nom du client : " + nom + " Prenom: " + prenom + " Mail: " + mail+"Mot de passe:"+mdp+  "\n");
+		bufferedWriter.newLine();
+		bufferedWriter.write("Effectue : " + res);
+		bufferedWriter.close();		
+		return res;
+	}
+
+	public boolean ConnexionClient(String mail, String mdp) throws ClassNotFoundException, SQLException {
+		// si le client exist, cette methode returns true
+		System.out.println("le client " + super.getAdressMail() + " veux se connecter");
+		boolean res = false;
+		Statement statement;
+		ResultSet result = null;
+		statement = creerConnection().createStatement();
+		String sentence = "SELECT adresseMail FROM Client";
+		System.out.println("le client " + super.getAdressMail() + " veux se connecter");
+		result = statement.executeQuery(sentence);
+		ResultSet resu;
+		while (result.next()) {
+			if (mail.equals(result.getString("adresseMail"))) {
+				sentence = "SELECT password FROM Client";
+				resu = statement.executeQuery(sentence);
+				while (resu.next()) {
+					if (mail.equals(result.getString("adresseMail"))) {
+						res = true;
+					}
+				}
+			}
+		}
+		return res;
+	}
+
+	private static Connection creerConnection() throws ClassNotFoundException, SQLException {
+		String server = "tp-oracle.esisar.grenoble-inp.fr";
+		String driver = "oracle.jdbc.driver.OracleDriver";
+		String url = "jdbc:oracle:thin:@//" + server + "/xe";
+		String login = "louremig";
+		String mdp = "louremig";
+
+		try {
+			Class.forName(driver);
+
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Connection connection = DriverManager.getConnection(url, login, mdp);
+		// System.out.println(connection);
+		return connection;
+
+	}
+
+
+
+	public void CreationAlbum(String titre, String sous_titre) {
+		
+
+	}
+	
+	public void SupprimerAlbum(String titre, String sous_titre) {
+		
+
+	}
+}

@@ -1,0 +1,45 @@
+package fr.esisar.controller;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import fr.esisar.model.Album;
+
+public class AlbumDAO extends Album{
+	
+	public AlbumDAO(String titre, String sousTitre) {
+		super(titre, sousTitre);
+	}
+
+	public int addAlbum (Connection connect, String adressMail)  throws ClassNotFoundException, SQLException {
+		Statement statement;
+		ResultSet result = null;
+		statement = connect.createStatement();
+		result = statement.executeQuery("SELECT MAX(idAlbum) FROM Album");
+		result.next();
+		System.out.println(result.getString(1));
+		idAlbum = Integer.parseInt(result.getString(1)) + 1;
+		String quer1 = "INSERT INTO Album (idAlbum, titre, sousTitre) ";
+		String quer2 = "VALUES ('" + idAlbum + "', '" + titre + "', '" + sousTitre + "')";
+		result = statement.executeQuery(quer1 + quer2);
+		return idAlbum;
+	}
+
+	public static boolean supprimerAlbum(Connection creerConnection, String titre, String sous_titre,
+			String adressMail) {
+		
+		return false;
+	}
+
+	public static boolean AfficherListeAlbum(Connection creerConnection, String adressMail) {
+		
+		return false;
+	}
+
+	public static String getidAlbum(String titreAlbum, String soustitreAlbum) {
+		
+		return null;
+	}
+}

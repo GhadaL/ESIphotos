@@ -1,0 +1,14 @@
+package fr.esisar.controller;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class AdresseDAO extends Adresse{
+
+	public AdresseDAO(int idAdresse, String rue, String codePostal, String ville) {
+		super(idAdresse, rue, codePostal, ville);
+	}
+	
+}

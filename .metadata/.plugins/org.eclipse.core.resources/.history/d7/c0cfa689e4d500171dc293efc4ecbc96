@@ -1,0 +1,65 @@
+package fr.esisar.controller;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class LigneCommandeDAO {
+
+	public static boolean addLigneCommande(File fichier, Connection connect, String quantite, int idCommande, String idFormat, String idAlbum) throws SQLException, IOException {
+		Statement statement;
+		boolean res = false;
+		ResultSet result = null;
+		statement = connect.createStatement();
+		String sentence = "SELECT idLigneCommande FROM LigneCommande";
+		result = statement.executeQuery(sentence);
+		while (result.next()) {
+			if (idCommande==(Integer.parseInt(result.getString("idCommande")))&&idFormat.equals(result.getString("idFormat"))&&idAlbum.equals(result.getString("idAlbum"))) {
+				res = true;
+			}
+		}
+		if(res==true) {
+			result = statement.executeQuery("SELECT MAX(idLigneCommande) FROM LigneCommande");
+			result.next();
+			int idLigneCommande = Integer.parseInt(result.getString(1)) + 1;
+			String quer1 = "INSERT INTO LigneCommande (idLigneCommande, quantite, idCommande, idFormat, idAlbum) ";
+			String quer2 = "VALUES ('" + idLigneCommande + "', '" + quantite + "', '" + idCommande + "', '" + idFormat + "', '" + idAlbum + "')";
+			result = statement.executeQuery(quer1 + quer2);
+
+			//Ecriture fichier log
+			BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fichier, true));
+		    bufferedWriter.write("Ajout Ligne de commande : " + idLigneCommande + " quantite : " + quantite +"\n");
+		    bufferedWriter.newLine();
+		    bufferedWriter.write("Effectue : "+res);
+		    bufferedWriter.close();
+		}
+		return res;
+	}
+	
+	public int PrixCommande(File fichier, Connection connect, String idCommande) throws SQLException, IOException {
+		int prix=0;
+		Statement statement;
+		FormatDAO form =new FormatDAO();
+		ResultSet result = null;
+		statement = connect.createStatement();
+		String sentence = "SELECT idCommande FROM LigneCommande";
+		result = statement.executeQuery(sentence);
+		while (result.next()) {
+			if (idCommande.equals(result.getString("idCommande"))) {
+				String format = result.getString("idFormat");
+				prix = prix + form.getPrix(connect, format);
+			}
+		}
+		//Ecriture fichier log
+		BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fichier, true));
+	    bufferedWriter.write("Prix de la lignecommande : " + idCommande + " est de : " + prix +"\n");
+	    bufferedWriter.close();
+		return prix;
+	}
+
+}

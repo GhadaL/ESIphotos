@@ -1,0 +1,322 @@
+package fr.esisar.view;
+import fr.esisar.controller.AlbumDAO;
+import fr.esisar.controller.ClientDAO;
+import fr.esisar.model.Client;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Scanner;
+
+
+
+public class Main {
+
+	public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
+		System.out.println("*****Bienvenue sur la plateforme Esiphoto*****by CS441 group3");
+		Main.menuEntree();
+	}
+	
+	public static void menuEntree() throws IOException, ClassNotFoundException, SQLException
+	{	
+		System.out.println("\n\n*****ESIPHOTO MENU D'ACCUEIL*****");
+		Scanner sc = new Scanner(System.in);
+		String firstAction = null;
+		
+		do{
+			System.out.println("\nVeuillez taper le numero de l'action a effectuer");
+			
+			System.out.println("0 : Souscription");
+			System.out.println("1 : Connexion");
+			System.out.println("2 : Quitter");
+			System.out.print("Votre action : ");
+			
+			firstAction = sc.nextLine();
+		
+			System.out.print("\n");
+			
+			if(firstAction.equals("0"))
+			{
+				Main.Subscribe();
+			}
+			else if(firstAction.equals("1"))
+			{
+				Main.Connexion();
+			}
+			else if(firstAction.equals("2"))
+			{
+				sc.close();
+				System.out.print("\n\nAurevoir & A bientot ! ");
+			}
+			else
+			{
+				System.out.print("Votre choix est incorrect.");
+			}
+		}while(!(firstAction.equals("0") | firstAction.equals("1") | firstAction.equals("2")));
+		
+	}
+		
+		public static void Subscribe() throws IOException, ClassNotFoundException, SQLException
+		{
+			Scanner sc = new Scanner(System.in);
+			ClientDAO userDAO = null ;
+			System.out.println("Veuillez entrer les informations suivantes necessaires a la creation de votre compte: ");
+			System.out.println("Nom : ");
+			String Nom = sc.nextLine();
+			System.out.println("Prenom : ");
+			String Prenom = sc.nextLine();
+			System.out.println("Mail : ");
+			String mail = sc.nextLine();
+			System.out.println("Password : ");
+			String Password = sc.nextLine();
+			
+			System.out.println("Rue de livraison");
+			String ruel=sc.nextLine();
+			System.out.println("codePostal de livraison : ");
+			String codePostall = sc.nextLine();
+			System.out.println("ville de livraison : ");
+			String villel = sc.nextLine();
+			System.out.println("Rue de facturation");
+			String ruef=sc.nextLine();
+			System.out.println("codePostal de facturation : ");
+			String codePostalf = sc.nextLine();
+			System.out.println("ville de facturation : ");
+			String villef = sc.nextLine();
+			System.out.println("Login : "+mail+"\npassword : "+Password);
+			System.out.println("Creation de votre compte...");
+			userDAO = new ClientDAO(mail,Nom,Prenom,Password);
+			
+			try {
+				if(userDAO.EnregistrerClient(userDAO.getFile(),ruel,codePostall,villel,ruef,codePostalf,villef))
+				{
+					System.out.println("Felicitations ! Votre compte a bien ete enregistre.");
+					Main.MenuPrincipal(userDAO);
+				}
+				else
+				{
+					System.out.println("Nous sommes desoles. Un compte existe deja pour cette adresse mail");
+					Main.menuEntree();
+				}
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+		public static void Connexion() throws IOException, ClassNotFoundException, SQLException
+		{
+			Scanner sc = new Scanner(System.in);
+			System.out.println("Mail : ");
+			String mail = sc.nextLine();
+			System.out.println("Password : ");
+			String password = sc.nextLine();
+			System.out.println("Connexion a votre compte...");
+			ClientDAO userDAO = new ClientDAO(mail,password) ;
+			
+			try {
+				if(userDAO.ConnexionClient(mail, password))
+				{
+					System.out.println("Connexion reussie.");
+					Main.MenuPrincipal(userDAO);
+				}
+				else
+				{
+					System.out.println("Nous sommes desoles. La connexion n'a pas aboutie");
+					Main.menuEntree();
+				}
+			} catch (ClassNotFoundException | SQLException e) {
+				e.printStackTrace();
+			}
+		}
+					
+		public static void MenuPrincipal(ClientDAO userDAO) throws IOException, ClassNotFoundException, SQLException
+		{
+			Scanner sc = new Scanner(System.in);
+			System.out.println("\n\n*****Esiphoto Menu Principal*****");
+			String action=null;
+			
+			do{
+				System.out.println("\nVeuillez taper le numero de l'action a effectuer");
+				
+				System.out.println("0 : Afficher la liste des Albums");
+				System.out.println("1 : Creer un Album");
+				System.out.println("2 : Supprimer un Album");
+				System.out.println("3 : Afficher la liste des images d'un album");
+				System.out.println("4 : Deposer un fichier image");
+				System.out.println("5 : Supprimer un fichier image");
+				System.out.println("6 : Ajouter un fichier image a l'album...");
+				System.out.println("7 : Retirer un fichier image a l'album...");
+				System.out.println("8 : Passer une commande...");
+				System.out.println("9 : Deconnexion");
+				System.out.print("Votre action : ");
+				
+				action = sc.nextLine();
+				switch(action)
+				{
+				case "0":
+					userDAO.AfficherListeAlbum();
+					Main.MenuPrincipal(userDAO);
+					break;
+
+				case "1": 
+					System.out.println("Titre de l'album a creer : ");
+					String titre = sc.nextLine();
+					System.out.println("Sous titre : ");
+					String sous_titre = sc.nextLine();
+					userDAO.AjouterAlbum(titre, sous_titre);
+					break;
+
+				case "2":
+					System.out.println("Identifiant de l'album a supprimer : ");
+					int idAlbum = sc.nextInt();
+					userDAO.SupprimerAlbum(idAlbum);
+					break;
+
+				case "3":
+					System.out.println("Identifiant de l'album a consulter : ");
+					int identAlbum = sc.nextInt();
+					userDAO.AfficherListeImagesfromAlbum(identAlbum);
+					break;
+
+				case "4":
+					System.out.println("Veuillez nous preciser les informations suivantes concernant votre fichier image :");
+					System.out.println("Chemin d'acces sur le serveur");
+					String chemin = sc.nextLine();
+					System.out.println("Appareil photo utilise : ");
+					String apphoto = sc.nextLine();
+					System.out.println("Objectif utilise : ");
+					String objectif = sc.nextLine();
+					System.out.println("Distance focale : ");
+					String focale = sc.nextLine();
+					System.out.println("Sensibilite ISO : ");
+					String iso = sc.nextLine();
+					System.out.println("Ouverture : ");
+					String ouverture = sc.nextLine();
+					System.out.println("Vitesse d'obturation : ");
+					String obturation = sc.nextLine();
+
+					userDAO.InsererFichierImage(chemin, apphoto, objectif, focale, iso, ouverture, obturation);
+					break;
+
+				case "5":
+					System.out.println("Veuillez entrer le chemin d'acces du fichier que vous desirer supprimer :");
+					String cheminacces = sc.nextLine();
+					userDAO.SupprimerFichierImage(cheminacces);
+					break;
+
+				case "6":
+					System.out.println("***Ajouter un fichier image a l'album...***");
+					System.out.println("Veuillez entrer les informations suivantes :");
+					System.out.println("Chemin d'acces du fichier image : ");
+					String cheminAcces = sc.next();
+					System.out.println("Identifiant de l'album");
+					int id_Album = sc.nextInt();
+					System.out.println("Titre de la photo dans l'album : ");
+					String titrephoto = sc.next();
+					System.out.println("Commentaire sur la photo dans l'album : ");
+					String commentaire = sc.next();
+					userDAO.AjouterFichierImagetoAlbum(cheminAcces, id_Album, titrephoto, commentaire);
+					break;
+
+				case "7":
+					System.out.println("***Retirer un fichier image a l'album...***");
+					System.out.println("Veuillez entrer les informations suivantes :");
+					System.out.println("Chemin d'acces du fichier image : ");
+					String chemin_Acces = sc.nextLine();
+					System.out.println("Identifiant de l'album");
+					int idalbum = sc.nextInt();
+					userDAO.RetirerFichierImagefromAlbum(chemin_Acces, idalbum);
+					break;
+
+				case "8":
+					break;
+
+				case "9":
+					System.out.println("Deconnexion... ");
+					break;
+					
+				default : 
+					System.out.println("Votre choix est incorrect.");
+					action = "0";
+					break;
+				}
+					
+			}while(action.equals("0") | action.equals("1") | action.equals("2") | action.equals("3") | action.equals("4") | action.equals("5")
+					| action.equals("6") | action.equals("7"));
+			
+			if(action.equals("8")){
+				Main.ServiceCommande(userDAO);
+			}
+			if(action.equals("9")){
+				Main.menuEntree();
+			}
+		}
+		
+		public static void ServiceCommande(ClientDAO userDAO) throws ClassNotFoundException, SQLException, IOException
+		{
+			Scanner sc = new Scanner(System.in);
+			int idCommande;
+			
+			System.out.println("\n\n*****Esiphoto Menu Commande*****");
+			
+			System.out.println("La liste de vos commande est la suivante : \n");
+			userDAO.AfficherListeCommande(userDAO.getAdressMail());
+			
+			System.out.println("Si vous souhaitez continuer une commande toujours en cours, veuillez entrer son identifiant."
+					+ "\nSinon appuyez simplement sur Entree");
+			String idcommande = sc.nextLine();
+			if (idcommande.equals(""))
+			{
+				idCommande = userDAO.CreerCommande();
+				System.out.println("L'id de votre nouvelle commande est : "+idCommande);
+			}
+			else
+			{
+				idCommande = Integer.parseInt(idcommande);
+				if(!userDAO.VerifierValiditeCommande(idCommande))
+				{
+					System.out.println("Desole, l'id commande renseigne n'est pas valide");
+					Main.ServiceCommande(userDAO);
+					return;
+				}
+				
+			}
+			String action = null;
+			do{
+				System.out.println("\n\nVeuillez taper le numero de l'action a effectuer");
+	
+				System.out.println("0 : Creer une nouvelle ligne commande");
+				System.out.println("1 : Valider votre commande");
+				System.out.println("2 : Quitter");
+				System.out.print("Votre action : ");
+				action = sc.nextLine();
+	
+				switch(action)
+				{
+				case "0":
+					System.out.println("Selectionner votre format parmis la liste suivante : ");
+					userDAO.AfficherListeFormat();
+					String format = sc.next();
+					if(!(format.equals("A1") || format.equals("A2") || format.equals("A3") || format.equals("A4") || format.equals("A5") || format.equals("A6")))
+					{
+						System.out.println("Erreur : format invalide.");
+						break;
+					}
+					System.out.println("Entrer l'identifiant de votre album a commander : ");
+					int idAlbum = sc.nextInt();
+					System.out.println("Entrer la quantite desiree : ");
+					String quantite = sc.next();
+					userDAO.CreerLigneCommande(userDAO.getFile(), quantite, idCommande, idAlbum, format);
+					break;
+					
+				case "1":
+					userDAO.ValiderCommande(userDAO.getFile(), idCommande);
+					break;
+				case "2":
+					break;
+				}
+			}while(action.equals("0"));
+			Main.MenuPrincipal(userDAO);
+		}
+
+}
+

@@ -1,0 +1,58 @@
+package fr.esisar.controller;
+
+import fr.esisar.model.Commande;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class CommandeDAO extends Commande{
+	
+	public CommandeDAO()
+	{
+		super();
+	}
+	public int addCommande (Connection connect, String adresseMail) throws ClassNotFoundException, SQLException {
+		Statement statement;
+		int idCommande;
+		boolean res = true;
+		ResultSet resu = null;
+		statement = connect.createStatement();
+		resu = statement.executeQuery("SELECT MAX(idCommande) FROM Commande");
+		resu.next();
+		if(resu.getString(1) == null){
+			idCommande = 0;
+		}
+		else{
+			idCommande = (Integer.parseInt(resu.getString(1))+1);
+		}
+		if (res == true) {
+			String quer1 = "INSERT INTO Commande (idCommande, dateCommande, prixTotal, adresseMail) ";
+			
+			String quer2 = "VALUES ('" +idCommande+ "', '" + super.getDate() + "', '" + super.getPrixTotal() + "', '" + adresseMail + "')";
+			resu = statement.executeQuery(quer1 + quer2);
+		}
+		return idCommande;
+	}
+
+	public static int ValiderCommande(File fichier, Connection connect, int idCommande, String adressMail) throws SQLException, IOException {
+		Statement statement;
+		boolean res = false;
+		ResultSet result = null;
+		statement = connect.createStatement();
+		String sentence = "SELECT idCommande FROM Commande";
+		result = statement.executeQuery(sentence);
+		LigneCommandeDAO lComm = new LigneCommandeDAO();
+		int prix = lComm.PrixCommande(fichier, connect, idCommande);
+		//Ecriture fichier log
+		BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fichier, true));
+	    bufferedWriter.write("Prix de la commande : " + idCommande + " est de : " + prix +"\n");
+	    bufferedWriter.close();
+		return 0;
+	}
+}

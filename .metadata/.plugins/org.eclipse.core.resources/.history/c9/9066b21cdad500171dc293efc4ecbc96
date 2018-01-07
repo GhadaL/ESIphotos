@@ -1,0 +1,57 @@
+package fr.esisar.controller;
+
+import fr.esisar.model.*;
+
+import java.sql.*;
+
+public class ContientDAO extends Contient {
+
+	public ContientDAO(int num_ordre, String title, String commentaire) {
+		super(num_ordre, title, commentaire);
+		
+	}
+
+	public boolean AjouterFichierImagetoAlbum(Connection connect, String url, String idAlbum, String numOrdre,
+			String titre, String commentaire)  {
+		//si on a besion d'afficher l image 
+		//FichierImage image = new FichierImage();
+		// image=FichierImageDAO.findByURL(connect, url);
+		
+		// insert into contient la liaison
+		Statement st;
+		try {
+			st = connect.createStatement();
+			// insert the data
+			st.executeUpdate("INSERT INTO Contient " + "VALUES ('" + "com" + "', '" + numOrdre + "', '" + titre + "', '"
+					+ commentaire + "', '" + url + "', '" + idAlbum + "', '" + "('" + url + "','" + idAlbum + "')" + ")");
+			System.out.println("Fichier image ajouté à album id=" + idAlbum);
+			// album.ajouterFichierImage(image);
+			return true;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+	}
+
+	public static boolean RetirerFichierImagefromAlbum(Connection creerConnection, String cheminAcces, String idAlbum,
+			String adressMail) { 	
+		Statement st;
+		try {
+			st = connect.createStatement();
+			// insert the data
+			st.executeUpdate("DELETE FROM CONTIENT WHERE cheminAcces = '"+cheeminAcces+"' "+" AND idAlbum = '"+idAlbum+"'");
+			System.out.println("Fichier image url= "+url+" supprimé de l'album id=" + idAlbum);
+			// album.ajouterFichierImage(image);
+			return true;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		//then call method verify in Fichier image to delete the image if it doesn't exist in any album
+        
+		return false;
+	}
+}
